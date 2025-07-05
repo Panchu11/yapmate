@@ -1,65 +1,544 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* CSS Variables for Dynamic Theming */
+:root {
+  --yapmate-primary: #6366f1;
+  --yapmate-primary-dark: #4f46e5;
+  --yapmate-primary-light: #818cf8;
+  --yapmate-secondary: #8b5cf6;
+  --yapmate-accent: #06b6d4;
+  --yapmate-success: #10b981;
+  --yapmate-warning: #f59e0b;
+  --yapmate-error: #ef4444;
+  --yapmate-surface: rgba(255, 255, 255, 0.85);
+  --yapmate-surface-elevated: rgba(255, 255, 255, 0.95);
+  --yapmate-text: #0f172a;
+  --yapmate-text-secondary: #475569;
+  --yapmate-text-muted: #64748b;
+  --yapmate-border: rgba(255, 255, 255, 0.2);
+  --yapmate-border-strong: rgba(255, 255, 255, 0.3);
+  --yapmate-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --yapmate-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --yapmate-shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --yapmate-blur: blur(20px);
+  --yapmate-blur-sm: blur(8px);
+}
+
+/* Dark Theme Variables */
+.dark {
+  --yapmate-surface: rgba(15, 23, 42, 0.85);
+  --yapmate-surface-elevated: rgba(30, 41, 59, 0.9);
+  --yapmate-text: #f8fafc;
+  --yapmate-text-secondary: #cbd5e1;
+  --yapmate-text-muted: #94a3b8;
+  --yapmate-border: rgba(255, 255, 255, 0.1);
+  --yapmate-border-strong: rgba(255, 255, 255, 0.2);
+}
 
 @layer base {
   * {
     @apply border-border;
   }
-  
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    color: var(--yapmate-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   }
 }
 
 @layer components {
+  /* Enhanced Glass Morphism System */
   .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    background: var(--yapmate-surface);
+    backdrop-filter: var(--yapmate-blur);
+    border: 1px solid var(--yapmate-border);
+    box-shadow: var(--yapmate-shadow);
   }
-  
+
   .glass-card {
-    @apply bg-white/70 backdrop-blur-sm border border-white/20 rounded-lg shadow-glass;
+    background: var(--yapmate-surface);
+    backdrop-filter: var(--yapmate-blur);
+    border: 1px solid var(--yapmate-border);
+    border-radius: 16px;
+    box-shadow: var(--yapmate-shadow-lg);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
   }
-  
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  }
+
+  .glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--yapmate-shadow-xl);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .glass-card-elevated {
+    background: var(--yapmate-surface-elevated);
+    transform: translateY(-2px);
+    box-shadow: var(--yapmate-shadow-xl);
+  }
+
+  /* Modern Button System */
   .btn-primary {
-    @apply bg-gradient-to-r from-yapmate-primary to-yapmate-secondary text-white font-medium py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200;
+    position: relative;
+    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    overflow: hidden;
   }
-  
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
   .btn-secondary {
-    @apply bg-white/70 backdrop-blur-sm text-gray-700 font-medium py-2 px-4 rounded-lg border border-white/20 hover:bg-white/80 transition-all duration-200;
+    background: var(--yapmate-surface);
+    color: var(--yapmate-text);
+    font-weight: 500;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--yapmate-border);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: var(--yapmate-blur-sm);
   }
-  
+
+  .btn-secondary:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--yapmate-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--yapmate-shadow);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--yapmate-text-secondary);
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--yapmate-text);
+  }
+
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--yapmate-text-secondary);
+  }
+
+  .btn-icon:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--yapmate-primary);
+    transform: scale(1.05);
+  }
+
+  /* Enhanced Input System */
   .input-field {
-    @apply bg-white/70 backdrop-blur-sm border border-white/20 rounded-lg px-3 py-2 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yapmate-primary/50 focus:border-yapmate-primary transition-all duration-200;
+    background: var(--yapmate-surface);
+    border: 1px solid var(--yapmate-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--yapmate-text);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: var(--yapmate-blur-sm);
   }
-  
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--yapmate-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: var(--yapmate-surface-elevated);
+  }
+
+  .input-field::placeholder {
+    color: var(--yapmate-text-muted);
+    font-weight: 400;
+  }
+
+  /* Enhanced Tweet Card */
   .tweet-card {
-    @apply glass-card p-4 hover:bg-white/80 transition-all duration-200;
+    background: var(--yapmate-surface);
+    backdrop-filter: var(--yapmate-blur);
+    border: 1px solid var(--yapmate-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
   }
-  
+
+  .tweet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--yapmate-primary), var(--yapmate-secondary));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .tweet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--yapmate-shadow-xl);
+    border-color: rgba(99, 102, 241, 0.3);
+  }
+
+  .tweet-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .tweet-card.selected {
+    border-color: var(--yapmate-primary);
+    background: var(--yapmate-surface-elevated);
+  }
+
+  .tweet-card.selected::before {
+    transform: scaleX(1);
+  }
+
+  /* Enhanced Tone Buttons */
   .tone-button {
-    @apply flex items-center space-x-2 px-3 py-2 rounded-lg border border-white/20 bg-white/50 hover:bg-white/70 transition-all duration-200 cursor-pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--yapmate-border);
+    background: var(--yapmate-surface);
+    color: var(--yapmate-text-secondary);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: var(--yapmate-blur-sm);
+    position: relative;
+    overflow: hidden;
   }
-  
+
+  .tone-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .tone-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--yapmate-shadow);
+    border-color: var(--yapmate-primary);
+  }
+
   .tone-button.active {
-    @apply bg-yapmate-primary text-white border-yapmate-primary;
+    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
+    color: white;
+    border-color: var(--yapmate-primary);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
   }
-  
+
+  .tone-button.active::before {
+    opacity: 1;
+  }
+
+  /* Status Indicators */
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+  }
+
+  .status-online {
+    background: var(--yapmate-success);
+    animation: pulse-green 2s infinite;
+  }
+
+  .status-busy {
+    background: var(--yapmate-warning);
+  }
+
+  .status-offline {
+    background: var(--yapmate-text-muted);
+  }
+
+  @keyframes pulse-green {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Enhanced Loading States */
+  .loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--yapmate-border);
+    border-top: 2px solid var(--yapmate-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Enhanced Loading Dots */
   .loading-dots {
-    @apply inline-flex space-x-1;
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
   }
-  
+
   .loading-dots > div {
-    @apply w-2 h-2 bg-current rounded-full animate-pulse;
+    width: 6px;
+    height: 6px;
+    background: var(--yapmate-primary);
+    border-radius: 50%;
+    animation: loading-bounce 1.4s ease-in-out infinite both;
   }
-  
-  .loading-dots > div:nth-child(2) {
-    animation-delay: 0.2s;
+
+  .loading-dots > div:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dots > div:nth-child(2) { animation-delay: -0.16s; }
+  .loading-dots > div:nth-child(3) { animation-delay: 0s; }
+
+  @keyframes loading-bounce {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
-  
-  .loading-dots > div:nth-child(3) {
-    animation-delay: 0.4s;
+
+  /* Progress Bars */
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--yapmate-primary), var(--yapmate-secondary));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: progress-shimmer 2s infinite;
+  }
+
+  @keyframes progress-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Notification Badge */
+  .notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    background: var(--yapmate-error);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: badge-pulse 2s infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* Floating Action Button */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: var(--yapmate-shadow-xl);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+  }
+
+  .fab:hover {
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.4);
+  }
+
+  .fab:active {
+    transform: scale(0.95);
+  }
+
+  /* Tooltip System */
+  .tooltip {
+    position: absolute;
+    z-index: 1000;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    background: rgba(15, 23, 42, 0.9);
+    border-radius: 6px;
+    box-shadow: var(--yapmate-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(15, 23, 42, 0.9);
+  }
+
+  .tooltip-visible {
+    opacity: 1;
+  }
+
+  /* Avatar Component */
+  .avatar {
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  .avatar:hover::before {
+    transform: translateX(100%);
   }
 }
 
