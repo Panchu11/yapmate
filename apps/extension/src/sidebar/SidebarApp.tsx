@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TweetCard } from './components/TweetCard'
 import { SettingsPanel } from './components/SettingsPanel'
+import { AnalyticsDashboard } from './components/AnalyticsDashboard'
 import { Header } from './components/Header'
 import { useTweets } from './hooks/useTweets'
 import { useSettings } from './hooks/useSettings'
@@ -99,12 +100,9 @@ const SidebarApp: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2 }}
-              className="h-full p-4"
+              className="h-full"
             >
-              <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Analytics</h2>
-                <p className="text-gray-600">Analytics dashboard coming soon...</p>
-              </div>
+              <AnalyticsDashboard />
             </motion.div>
           )}
         </AnimatePresence>

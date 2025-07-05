@@ -12,13 +12,24 @@
   "host_permissions": [
     "https://x.com/*",
     "https://twitter.com/*",
+    "https://linkedin.com/*",
+    "https://www.linkedin.com/*",
+    "https://discord.com/*",
+    "https://web.telegram.org/*",
     "https://api.fireworks.ai/*",
     "https://api.openai.com/*",
     "https://api.anthropic.com/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://linkedin.com/*",
+        "https://www.linkedin.com/*",
+        "https://discord.com/*",
+        "https://web.telegram.org/*"
+      ],
       "js": ["src/content/content.ts"],
       "run_at": "document_end"
     }

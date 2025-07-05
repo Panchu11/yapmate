@@ -1,6 +1,7 @@
-// Content script for Twitter/X integration
+// Content script for multi-platform integration
 import { TweetExtractor } from './tweet-extractor'
 import { TwitterIntegration } from './twitter-integration'
+import { platformManager } from '../platforms/PlatformManager'
 
 // Simple logger
 const logger = {
@@ -53,13 +54,14 @@ class YapMateContentScript {
 
   private async setup() {
     try {
-      // Verify we're on Twitter/X
-      if (!this.isTwitterPage()) {
-        logger.warn('Not on Twitter/X page, content script will not activate')
+      // Verify we're on a supported platform
+      if (!platformManager.isSupported()) {
+        logger.warn('Not on supported platform, content script will not activate')
         return
       }
 
-      logger.info('Setting up YapMate on Twitter/X')
+      const platform = platformManager.getCurrentPlatform()
+      logger.info(`Setting up YapMate on ${platform?.name}`)
 
       // Initialize components
       await this.tweetExtractor.init()
@@ -88,9 +90,40 @@ class YapMateContentScript {
     }
   }
 
-  private isTwitterPage(): boolean {
-    return window.location.hostname === 'x.com' || 
-           window.location.hostname === 'twitter.com'
+  private async extractTweets() {
+    try {
+      // Use platform manager for multi-platform support
+      const posts = await platformManager.extractPosts()
+
+      // Convert posts to tweet format for compatibility
+      const tweets = posts.map(post => ({
+        id: post.id,
+        text: post.text,
+        author: post.author,
+        username: post.username,
+        timestamp: post.timestamp,
+        replyCount: post.engagement.comments,
+        retweetCount: post.engagement.shares,
+        likeCount: post.engagement.likes,
+        hasReplyBox: post.hasReplyBox,
+        url: post.url,
+        platform: post.platform
+      }))
+
+      // Notify sidebar about new posts
+      chrome.runtime.sendMessage({
+        type: 'TWEETS_UPDATED',
+        payload: {
+          tweets,
+          url: window.location.href,
+          platform: platformManager.getCurrentPlatformId()
+        }
+      })
+
+      logger.debug(`Extracted ${tweets.length} posts from ${platformManager.getCurrentPlatform()?.name}`)
+    } catch (error) {
+      logger.error('Error extracting posts:', error)
+    }
   }
 
   private setupMessageListeners() {
@@ -168,21 +201,7 @@ class YapMateContentScript {
     logger.debug('DOM observer set up')
   }
 
-  private async extractTweets() {
-    try {
-      const tweets = await this.tweetExtractor.extractTweets()
-      
-      // Notify sidebar about new tweets
-      chrome.runtime.sendMessage({
-        type: 'TWEETS_UPDATED',
-        payload: { tweets, url: window.location.href }
-      })
 
-      logger.debug(`Extracted ${tweets.length} tweets`)
-    } catch (error) {
-      logger.error('Error extracting tweets:', error)
-    }
-  }
 
   private async handleGetTweets(sendResponse: (response: any) => void) {
     try {

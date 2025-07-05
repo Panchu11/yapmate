@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { cryptoIntelligence } from '../../utils/cryptoIntelligence'
 
 interface Tweet {
   id: string
@@ -23,6 +24,91 @@ const tones = [
   { id: 'degen' as ToneType, name: 'Degen', emoji: '🚀', description: 'Bold and energetic' },
 ]
 
+// Helper functions for AI integration
+const buildPrompt = (tweet: Tweet, tone: ToneType, cryptoMode: boolean): string => {
+  let prompt = `Tweet: "${tweet.text}"\n`
+  prompt += `Author: @${tweet.username} (${tweet.author})\n\n`
+
+  if (cryptoMode) {
+    // Get enhanced crypto context
+    const context = cryptoIntelligence.getEnhancedContext(tweet.text)
+
+    if (context.projects.length > 0) {
+      prompt += `Detected Crypto Projects:\n`
+      context.projects.forEach(project => {
+        prompt += `- ${project.name} (${project.symbol}): ${project.category}\n`
+      })
+      prompt += `\n`
+    }
+
+    if (context.sentiment.confidence > 0.3) {
+      prompt += `Market Sentiment: ${context.sentiment.label} (${context.sentiment.score.toFixed(2)})\n`
+      prompt += `Key indicators: ${context.sentiment.keywords.join(', ')}\n\n`
+    }
+
+    if (context.suggestedTickers.length > 0) {
+      prompt += `Suggested tickers to include: ${context.suggestedTickers.join(', ')}\n`
+    }
+
+    if (context.suggestedMentions.length > 0) {
+      prompt += `Suggested mentions: ${context.suggestedMentions.join(', ')}\n`
+    }
+
+    if (context.suggestedHashtags.length > 0) {
+      prompt += `Suggested hashtags: ${context.suggestedHashtags.join(', ')}\n`
+    }
+
+    prompt += `\n`
+  }
+
+  prompt += `Instructions:\n`
+  prompt += `- Generate a ${tone} reply to this tweet\n`
+  prompt += `- Max 280 characters, natural and conversational\n`
+  prompt += `- Write like a real ${cryptoMode ? 'crypto Twitter' : 'social media'} user\n`
+  prompt += `- Be engaging and add value to the conversation\n`
+
+  if (cryptoMode) {
+    prompt += `- CRITICAL: Use the detected crypto context above\n`
+    prompt += `- Include relevant tickers, mentions, and hashtags naturally\n`
+    prompt += `- Match the market sentiment appropriately\n`
+    prompt += `- Show deep crypto knowledge and community understanding\n`
+  }
+
+  prompt += `- NO quotes around the reply, write it as a direct tweet\n`
+  prompt += `- Sound authentic and engaging\n\n`
+  prompt += `Reply:`
+
+  return prompt
+}
+
+const getSystemPrompt = (tone: ToneType, cryptoMode: boolean): string => {
+  const basePrompt = 'You are an expert at writing engaging social media replies.'
+
+  if (cryptoMode) {
+    return `${basePrompt} You have deep knowledge of cryptocurrency, DeFi, NFTs, and Web3. Analyze tweets for crypto projects and topics, then generate natural responses that include relevant handles, tickers, and hashtags. Write like a knowledgeable crypto community member.`
+  }
+
+  return `${basePrompt} Generate natural, engaging replies that add value to conversations. Write like a real person - casual, direct, and conversational.`
+}
+
+const getToneTemperature = (tone: ToneType): number => {
+  const temperatures = {
+    smart: 0.7,
+    funny: 0.9,
+    serious: 0.5,
+    degen: 0.95
+  }
+  return temperatures[tone] || 0.7
+}
+
+const sanitizeReply = (content: string): string => {
+  return content
+    .replace(/^(Reply:|Response:)\s*/i, '')
+    .replace(/^["']|["']$/g, '')
+    .replace(/^@\w+\s+/, '')
+    .trim()
+}
+
 export const ReplyGenerator: React.FC<ReplyGeneratorProps> = ({ tweet, settings, onClose }) => {
   const [selectedTone, setSelectedTone] = useState<ToneType>('smart')
   const [generatedReply, setGeneratedReply] = useState<string>('')
@@ -35,27 +121,78 @@ export const ReplyGenerator: React.FC<ReplyGeneratorProps> = ({ tweet, settings,
     setGeneratedReply('')
 
     try {
-      // Simulate AI generation with a realistic delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Mock reply generation based on tone
-      const mockReplies = {
-        smart: `Interesting perspective on ${tweet.text.split(' ').slice(0, 3).join(' ')}. The data suggests this trend could continue, especially considering the current market dynamics. What's your take on the long-term implications? 🧠`,
-        funny: `Haha, this reminds me of when I tried to explain crypto to my grandma 😂 She said "So it's like Monopoly money but more expensive?" Not wrong tbh 💀`,
-        serious: `This is a significant development that could impact the broader ecosystem. The implications for institutional adoption and regulatory clarity are worth monitoring closely. 💼`,
-        degen: `LFG! 🚀 This is exactly what we've been waiting for! Time to load up the bags and ride this wave to the moon! Who's with me? 💎🙌 #ToTheMoon`
+      // Get API key from settings
+      const result = await chrome.storage.sync.get(['yapmate_settings'])
+      const apiKey = result.yapmate_settings?.apiKeys?.fireworks
+
+      if (!apiKey) {
+        setError('Please configure your Fireworks AI API key in settings.')
+        return
       }
 
-      const reply = mockReplies[selectedTone]
-      
-      // Simulate typewriter effect
+      // Build the AI prompt
+      const prompt = buildPrompt(tweet, selectedTone, settings?.cryptoMode)
+
+      // Call Fireworks AI API
+      const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new',
+          messages: [
+            {
+              role: 'system',
+              content: getSystemPrompt(selectedTone, settings?.cryptoMode)
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 150,
+          temperature: getToneTemperature(selectedTone),
+          top_p: 0.95,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid API response format')
+      }
+
+      const reply = sanitizeReply(data.choices[0].message.content)
+
+      // Animate typewriter effect
       for (let i = 0; i <= reply.length; i++) {
         setGeneratedReply(reply.substring(0, i))
         await new Promise(resolve => setTimeout(resolve, 30))
       }
 
+      // Track analytics
+      chrome.runtime.sendMessage({
+        type: 'ANALYTICS_EVENT',
+        payload: {
+          event: 'reply_generated',
+          properties: {
+            tone: selectedTone,
+            cryptoMode: settings?.cryptoMode,
+            replyLength: reply.length,
+            tweetLength: tweet.text.length
+          }
+        }
+      })
+
     } catch (err) {
-      setError('Failed to generate reply. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate reply'
+      setError(errorMessage)
       console.error('Error generating reply:', err)
     } finally {
       setIsGenerating(false)
@@ -88,22 +225,80 @@ export const ReplyGenerator: React.FC<ReplyGeneratorProps> = ({ tweet, settings,
 
   const rewriteReply = async () => {
     if (!generatedReply) return
-    
+
     setIsGenerating(true)
     try {
-      // Simulate rewrite
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      const variations = [
-        generatedReply.replace(/\./g, '!'),
-        generatedReply.replace(/interesting/gi, 'fascinating'),
-        generatedReply.replace(/This/g, 'That'),
-      ]
-      
-      const newReply = variations[Math.floor(Math.random() * variations.length)]
+      // Get API key from settings
+      const result = await chrome.storage.sync.get(['yapmate_settings'])
+      const apiKey = result.yapmate_settings?.apiKeys?.fireworks
+
+      if (!apiKey) {
+        setError('Please configure your Fireworks AI API key in settings.')
+        return
+      }
+
+      // Build rewrite prompt
+      const prompt = `Original reply: "${generatedReply}"
+
+Instructions:
+- Rephrase this reply differently while keeping the same meaning
+- Keep all hashtags, handles (@), and ticker symbols ($) exactly the same
+- Maintain the same tone and style
+- Max 280 characters
+- Make it sound fresh and natural
+
+Rewritten reply:`
+
+      // Call Fireworks AI API
+      const response = await fetch('https://api.fireworks.ai/inference/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'accounts/sentientfoundation/models/dobby-unhinged-llama-3-3-70b-new',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert at rewriting social media replies while maintaining their meaning and tone.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 150,
+          temperature: 0.8,
+          top_p: 0.95,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      const newReply = sanitizeReply(data.choices[0].message.content)
+
       setGeneratedReply(newReply)
+
+      // Track analytics
+      chrome.runtime.sendMessage({
+        type: 'ANALYTICS_EVENT',
+        payload: {
+          event: 'reply_rewritten',
+          properties: {
+            originalLength: generatedReply.length,
+            newLength: newReply.length
+          }
+        }
+      })
+
     } catch (err) {
-      setError('Failed to rewrite reply. Please try again.')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to rewrite reply'
+      setError(errorMessage)
+      console.error('Error rewriting reply:', err)
     } finally {
       setIsGenerating(false)
     }
