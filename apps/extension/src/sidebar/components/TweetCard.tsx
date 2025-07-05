@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { ReplyGenerator } from './ReplyGenerator'
 
 interface Tweet {
@@ -11,11 +11,19 @@ interface Tweet {
   replyCount: number
   retweetCount: number
   likeCount: number
+  viewCount?: number
   hasReplyBox: boolean
   url?: string
   platform?: string
   isThread?: boolean
+  isRetweet?: boolean
   media?: any[]
+  mentions?: string[]
+  hashtags?: string[]
+  links?: string[]
+  sentiment?: 'positive' | 'negative' | 'neutral'
+  language?: string
+  quality?: number
 }
 
 interface TweetCardProps {
@@ -23,17 +31,23 @@ interface TweetCardProps {
   settings: any
   isSelected?: boolean
   onSelect?: () => void
+  index?: number
 }
 
-export const TweetCard: React.FC<TweetCardProps> = ({ 
-  tweet, 
-  settings, 
-  isSelected = false, 
-  onSelect 
+export const TweetCard: React.FC<TweetCardProps> = ({
+  tweet,
+  settings,
+  isSelected = false,
+  onSelect,
+  index = 0
 }) => {
   const [showReplyGenerator, setShowReplyGenerator] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(cardRef, { once: true, margin: "100px" })
 
+  // Revolutionary formatting functions
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
@@ -59,19 +73,58 @@ export const TweetCard: React.FC<TweetCardProps> = ({
     }
   }
 
-  const truncateText = (text: string, maxLength: number = 200): string => {
+  const truncateText = (text: string, maxLength: number = 280): string => {
     if (text.length <= maxLength) return text
     return text.substring(0, maxLength) + '...'
   }
 
   const detectCryptoMentions = (text: string) => {
-    const cryptoRegex = /(\$[A-Z]{1,10}|@\w+|#\w+)/g
+    const cryptoRegex = /(\$[A-Z]{1,10})/g
     return text.match(cryptoRegex) || []
   }
 
-  const cryptoMentions = detectCryptoMentions(tweet.text)
-  const shouldTruncate = tweet.text.length > 200
+  const detectMentions = (text: string) => {
+    const mentionRegex = /@(\w+)/g
+    return text.match(mentionRegex) || []
+  }
 
+  const detectHashtags = (text: string) => {
+    const hashtagRegex = /#(\w+)/g
+    return text.match(hashtagRegex) || []
+  }
+
+  const getSentimentColor = (sentiment?: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-500'
+      case 'negative': return 'text-red-500'
+      default: return 'text-gray-500'
+    }
+  }
+
+  const getSentimentIcon = (sentiment?: string) => {
+    switch (sentiment) {
+      case 'positive': return '📈'
+      case 'negative': return '📉'
+      default: return '📊'
+    }
+  }
+
+  const getQualityBadge = (quality?: number) => {
+    if (!quality) return null
+    if (quality >= 90) return { text: 'Premium', color: 'bg-purple-500' }
+    if (quality >= 70) return { text: 'High', color: 'bg-blue-500' }
+    if (quality >= 50) return { text: 'Good', color: 'bg-green-500' }
+    return { text: 'Basic', color: 'bg-gray-500' }
+  }
+
+  // Extract data for display
+  const cryptoMentions = detectCryptoMentions(tweet.text)
+  const mentions = detectMentions(tweet.text)
+  const hashtags = detectHashtags(tweet.text)
+  const shouldTruncate = tweet.text.length > 280
+  const qualityBadge = getQualityBadge(tweet.quality)
+
+  // Event handlers
   const handleCardClick = () => {
     if (onSelect) {
       onSelect()
@@ -88,121 +141,416 @@ export const TweetCard: React.FC<TweetCardProps> = ({
     setIsExpanded(!isExpanded)
   }
 
+  // Animation variants
+  const cardVariants = {
+    hidden: {
+      opacity: 0,
+      y: 50,
+      scale: 0.9,
+      rotateX: -15
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0,
+      transition: {
+        duration: 0.6,
+        delay: index * 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }
+    },
+    hover: {
+      y: -8,
+      scale: 1.02,
+      rotateX: 5,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    }
+  }
+
+  const contentVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delay: 0.2,
+        duration: 0.4
+      }
+    }
+  }
+
   return (
     <motion.div
+      ref={cardRef}
       layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={cardVariants}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      whileHover="hover"
       className={`tweet-card ${isSelected ? 'selected' : ''}`}
       onClick={handleCardClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        transformStyle: 'preserve-3d',
+        perspective: '1000px'
+      }}
     >
-      {/* Header */}
-      <div className="flex items-start gap-3 mb-3">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-            {tweet.author.charAt(0).toUpperCase()}
+      {/* Revolutionary Header */}
+      <motion.div
+        variants={contentVariants}
+        className="flex items-start gap-4 mb-6"
+      >
+        {/* Advanced Avatar */}
+        <motion.div
+          className="flex-shrink-0 relative"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 p-0.5">
+            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center">
+              <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                {tweet.author.charAt(0).toUpperCase()}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Author Info */}
+          {/* Online Status Indicator */}
+          <motion.div
+            className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.div>
+
+        {/* Enhanced Author Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 truncate">
+            <motion.h3
+              className="font-bold text-gray-900 dark:text-white truncate text-lg"
+              whileHover={{ scale: 1.02 }}
+            >
               {tweet.author}
-            </h3>
-            <span className="text-gray-500 text-sm">@{tweet.username}</span>
-            <span className="text-gray-400">·</span>
-            <span className="text-gray-500 text-sm">
-              {formatTimestamp(tweet.timestamp)}
-            </span>
-          </div>
-        </div>
+            </motion.h3>
 
-        {/* Platform Badge */}
-        <div className="flex-shrink-0">
-          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-            <span className="text-xs">🐦</span>
-          </div>
-        </div>
-      </div>
+            {/* Verification Badge */}
+            <motion.div
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+              className="text-blue-500"
+            >
+              ✓
+            </motion.div>
 
-      {/* Content */}
-      <div className="mb-4">
-        <p className="text-gray-800 leading-relaxed">
-          {isExpanded || !shouldTruncate ? tweet.text : truncateText(tweet.text)}
-        </p>
-        
-        {shouldTruncate && (
-          <button
-            onClick={handleExpandClick}
-            className="text-blue-600 text-sm mt-1 hover:underline font-medium"
-          >
-            {isExpanded ? 'Show less' : 'Show more'}
-          </button>
-        )}
-
-        {/* Crypto Mentions */}
-        {cryptoMentions.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-3">
-            {cryptoMentions.slice(0, 5).map((mention, index) => (
-              <span
-                key={index}
-                className="badge badge-secondary text-xs"
+            {/* Quality Badge */}
+            {qualityBadge && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className={`px-2 py-1 rounded-full text-xs font-medium text-white ${qualityBadge.color}`}
               >
-                {mention}
-              </span>
-            ))}
-            {cryptoMentions.length > 5 && (
-              <span className="text-xs text-gray-500">
-                +{cryptoMentions.length - 5} more
-              </span>
+                {qualityBadge.text}
+              </motion.span>
             )}
           </div>
+
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span className="font-medium">@{tweet.username}</span>
+            <span>·</span>
+            <span>{formatTimestamp(tweet.timestamp)}</span>
+
+            {/* Sentiment Indicator */}
+            {tweet.sentiment && (
+              <>
+                <span>·</span>
+                <span className={`flex items-center gap-1 ${getSentimentColor(tweet.sentiment)}`}>
+                  {getSentimentIcon(tweet.sentiment)}
+                  <span className="capitalize">{tweet.sentiment}</span>
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Advanced Platform & Actions */}
+        <div className="flex-shrink-0 flex items-center gap-2">
+          {/* Platform Badge */}
+          <motion.div
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
+            whileHover={{ scale: 1.1, rotate: 10 }}
+          >
+            <span className="text-white text-sm">🐦</span>
+          </motion.div>
+
+          {/* Thread Indicator */}
+          {tweet.isThread && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center"
+            >
+              <span className="text-xs">🧵</span>
+            </motion.div>
+          )}
+
+          {/* Retweet Indicator */}
+          {tweet.isRetweet && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center"
+            >
+              <span className="text-xs">🔄</span>
+            </motion.div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Revolutionary Content */}
+      <motion.div
+        variants={contentVariants}
+        className="mb-6"
+      >
+        <motion.div
+          className="relative"
+          layout
+        >
+          <p className="text-gray-800 dark:text-gray-200 leading-relaxed text-base font-medium">
+            {isExpanded || !shouldTruncate ? tweet.text : truncateText(tweet.text)}
+          </p>
+
+          {shouldTruncate && (
+            <motion.button
+              onClick={handleExpandClick}
+              className="text-blue-600 dark:text-blue-400 text-sm mt-2 hover:underline font-semibold flex items-center gap-1"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isExpanded ? (
+                <>
+                  <span>Show less</span>
+                  <span className="text-xs">↑</span>
+                </>
+              ) : (
+                <>
+                  <span>Show more</span>
+                  <span className="text-xs">↓</span>
+                </>
+              )}
+            </motion.button>
+          )}
+        </motion.div>
+
+        {/* Advanced Mentions & Tags */}
+        <AnimatePresence>
+          {(cryptoMentions.length > 0 || mentions.length > 0 || hashtags.length > 0) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 space-y-2"
+            >
+              {/* Crypto Mentions */}
+              {cryptoMentions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Crypto:</span>
+                  {cryptoMentions.slice(0, 5).map((mention, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg"
+                    >
+                      {mention}
+                    </motion.span>
+                  ))}
+                  {cryptoMentions.length > 5 && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+                      +{cryptoMentions.length - 5} more
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* User Mentions */}
+              {mentions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Mentions:</span>
+                  {mentions.slice(0, 3).map((mention, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="px-2 py-1 bg-gradient-to-r from-blue-400 to-purple-500 text-white text-xs font-medium rounded-full"
+                    >
+                      {mention}
+                    </motion.span>
+                  ))}
+                </div>
+              )}
+
+              {/* Hashtags */}
+              {hashtags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Tags:</span>
+                  {hashtags.slice(0, 3).map((hashtag, index) => (
+                    <motion.span
+                      key={index}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="px-2 py-1 bg-gradient-to-r from-green-400 to-blue-500 text-white text-xs font-medium rounded-full"
+                    >
+                      {hashtag}
+                    </motion.span>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Media Preview */}
+        {tweet.media && tweet.media.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 grid grid-cols-2 gap-2"
+          >
+            {tweet.media.slice(0, 4).map((media, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ scale: 1.05 }}
+                className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg flex items-center justify-center"
+              >
+                <span className="text-2xl">
+                  {media.type === 'image' ? '🖼️' : '🎥'}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Engagement Metrics */}
-      <div className="flex items-center gap-6 mb-4 text-gray-500 text-sm">
-        <div className="flex items-center gap-1">
-          <span>💬</span>
-          <span>{formatNumber(tweet.replyCount)}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span>🔄</span>
-          <span>{formatNumber(tweet.retweetCount)}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span>❤️</span>
-          <span>{formatNumber(tweet.likeCount)}</span>
-        </div>
-      </div>
+      {/* Revolutionary Engagement Metrics */}
+      <motion.div
+        variants={contentVariants}
+        className="flex items-center justify-between mb-6 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl backdrop-blur-sm"
+      >
+        <div className="flex items-center gap-6">
+          <motion.div
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
+            whileHover={{ scale: 1.1 }}
+          >
+            <span className="text-lg">💬</span>
+            <span className="font-semibold">{formatNumber(tweet.replyCount)}</span>
+          </motion.div>
 
-      {/* Actions */}
-      <div className="flex gap-2">
-        <button
+          <motion.div
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
+            whileHover={{ scale: 1.1 }}
+          >
+            <span className="text-lg">🔄</span>
+            <span className="font-semibold">{formatNumber(tweet.retweetCount)}</span>
+          </motion.div>
+
+          <motion.div
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
+            whileHover={{ scale: 1.1 }}
+          >
+            <span className="text-lg">❤️</span>
+            <span className="font-semibold">{formatNumber(tweet.likeCount)}</span>
+          </motion.div>
+
+          {tweet.viewCount && (
+            <motion.div
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400"
+              whileHover={{ scale: 1.1 }}
+            >
+              <span className="text-lg">👁️</span>
+              <span className="font-semibold">{formatNumber(tweet.viewCount)}</span>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Engagement Score */}
+        <motion.div
+          className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full"
+          whileHover={{ scale: 1.05 }}
+        >
+          🔥 {Math.round((tweet.likeCount + tweet.retweetCount + tweet.replyCount) / 10)}
+        </motion.div>
+      </motion.div>
+
+      {/* Revolutionary Actions */}
+      <motion.div
+        variants={contentVariants}
+        className="flex gap-3"
+      >
+        <motion.button
           onClick={handleReplyClick}
           className={`btn flex-1 ${
-            showReplyGenerator ? 'btn-primary' : 'btn-secondary'
+            showReplyGenerator ? 'btn-primary btn-glow' : 'btn-secondary'
           }`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <span>✨</span>
+          <motion.span
+            animate={{ rotate: showReplyGenerator ? 360 : 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            ✨
+          </motion.span>
           {showReplyGenerator ? 'Close Generator' : 'Generate Reply'}
-        </button>
-        
+        </motion.button>
+
         {tweet.url && (
-          <button
+          <motion.button
             onClick={(e) => {
               e.stopPropagation()
               window.open(tweet.url, '_blank')
             }}
             className="btn-icon"
             title="Open original tweet"
+            whileHover={{ scale: 1.1, rotate: 10 }}
+            whileTap={{ scale: 0.9 }}
           >
             🔗
-          </button>
+          </motion.button>
         )}
-      </div>
+
+        <motion.button
+          onClick={(e) => {
+            e.stopPropagation()
+            // Copy tweet text to clipboard
+            navigator.clipboard.writeText(tweet.text)
+          }}
+          className="btn-icon"
+          title="Copy tweet text"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          📋
+        </motion.button>
+
+        <motion.button
+          onClick={(e) => {
+            e.stopPropagation()
+            // Bookmark functionality
+          }}
+          className="btn-icon"
+          title="Bookmark tweet"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          🔖
+        </motion.button>
+      </motion.div>
 
       {/* Reply Generator */}
       <AnimatePresence>

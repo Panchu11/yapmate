@@ -1,64 +1,119 @@
-/* Import Modern Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Revolutionary Design System - World's Best Extension UI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Modern Design System Variables */
+/* Revolutionary Design System Variables */
 :root {
-  /* Brand Colors */
-  --yapmate-primary: #3b82f6;
-  --yapmate-primary-dark: #2563eb;
-  --yapmate-primary-light: #60a5fa;
-  --yapmate-secondary: #8b5cf6;
-  --yapmate-accent: #06b6d4;
-  --yapmate-success: #10b981;
-  --yapmate-warning: #f59e0b;
-  --yapmate-error: #ef4444;
+  /* Revolutionary Brand Colors */
+  --yapmate-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --yapmate-primary-solid: #667eea;
+  --yapmate-primary-dark: #5a67d8;
+  --yapmate-primary-light: #7c3aed;
+  --yapmate-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --yapmate-secondary-solid: #f093fb;
+  --yapmate-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --yapmate-accent-solid: #4facfe;
+  --yapmate-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --yapmate-success-solid: #43e97b;
+  --yapmate-warning: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --yapmate-warning-solid: #fa709a;
+  --yapmate-error: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%);
+  --yapmate-error-solid: #ff6b6b;
 
-  /* Surface Colors */
-  --yapmate-bg: #ffffff;
+  /* Revolutionary Surface System */
+  --yapmate-bg: #fafbfc;
   --yapmate-surface: rgba(255, 255, 255, 0.95);
   --yapmate-surface-elevated: rgba(255, 255, 255, 0.98);
-  --yapmate-surface-hover: rgba(59, 130, 246, 0.05);
+  --yapmate-surface-hover: rgba(103, 126, 234, 0.08);
+  --yapmate-surface-active: rgba(103, 126, 234, 0.12);
+  --yapmate-surface-glass: rgba(255, 255, 255, 0.85);
+  --yapmate-surface-frosted: rgba(255, 255, 255, 0.75);
 
-  /* Text Colors */
-  --yapmate-text: #0f172a;
-  --yapmate-text-secondary: #475569;
-  --yapmate-text-muted: #64748b;
+  /* Advanced Text System */
+  --yapmate-text: #1a202c;
+  --yapmate-text-secondary: #4a5568;
+  --yapmate-text-muted: #718096;
   --yapmate-text-inverse: #ffffff;
+  --yapmate-text-accent: var(--yapmate-primary-solid);
 
-  /* Border Colors */
-  --yapmate-border: rgba(226, 232, 240, 0.8);
-  --yapmate-border-strong: rgba(203, 213, 225, 0.9);
-  --yapmate-border-focus: var(--yapmate-primary);
+  /* Sophisticated Border System */
+  --yapmate-border: rgba(226, 232, 240, 0.6);
+  --yapmate-border-strong: rgba(203, 213, 225, 0.8);
+  --yapmate-border-focus: var(--yapmate-primary-solid);
+  --yapmate-border-glass: rgba(255, 255, 255, 0.2);
 
-  /* Shadows */
-  --yapmate-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* Revolutionary Shadow System */
+  --yapmate-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --yapmate-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   --yapmate-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --yapmate-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --yapmate-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --yapmate-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --yapmate-shadow-glow: 0 0 20px rgba(103, 126, 234, 0.3);
+  --yapmate-shadow-colored: 0 8px 32px rgba(103, 126, 234, 0.15);
 
-  /* Effects */
-  --yapmate-blur: blur(16px);
+  /* Advanced Effects */
+  --yapmate-blur: blur(20px);
   --yapmate-blur-sm: blur(8px);
-  --yapmate-radius: 12px;
-  --yapmate-radius-lg: 16px;
+  --yapmate-blur-lg: blur(40px);
+  --yapmate-radius: 16px;
+  --yapmate-radius-sm: 8px;
+  --yapmate-radius-lg: 24px;
+  --yapmate-radius-xl: 32px;
+  --yapmate-radius-full: 9999px;
+
+  /* Animation System */
+  --yapmate-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --yapmate-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --yapmate-transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --yapmate-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Dark Theme Variables */
+/* Revolutionary Dark Theme */
 .dark {
-  --yapmate-bg: #0f172a;
-  --yapmate-surface: rgba(30, 41, 59, 0.95);
-  --yapmate-surface-elevated: rgba(51, 65, 85, 0.98);
-  --yapmate-surface-hover: rgba(59, 130, 246, 0.1);
-  --yapmate-text: #f8fafc;
+  --yapmate-bg: #0a0e1a;
+  --yapmate-surface: rgba(15, 23, 42, 0.95);
+  --yapmate-surface-elevated: rgba(30, 41, 59, 0.98);
+  --yapmate-surface-hover: rgba(103, 126, 234, 0.12);
+  --yapmate-surface-active: rgba(103, 126, 234, 0.16);
+  --yapmate-surface-glass: rgba(15, 23, 42, 0.85);
+  --yapmate-surface-frosted: rgba(15, 23, 42, 0.75);
+  --yapmate-text: #f1f5f9;
   --yapmate-text-secondary: #cbd5e1;
   --yapmate-text-muted: #94a3b8;
-  --yapmate-text-inverse: #0f172a;
-  --yapmate-border: rgba(71, 85, 105, 0.8);
-  --yapmate-border-strong: rgba(100, 116, 139, 0.9);
+  --yapmate-text-inverse: #0a0e1a;
+  --yapmate-text-accent: #a78bfa;
+  --yapmate-border: rgba(71, 85, 105, 0.6);
+  --yapmate-border-strong: rgba(100, 116, 139, 0.8);
+  --yapmate-border-glass: rgba(255, 255, 255, 0.1);
+  --yapmate-shadow-glow: 0 0 20px rgba(167, 139, 250, 0.3);
+  --yapmate-shadow-colored: 0 8px 32px rgba(167, 139, 250, 0.15);
+}
+
+/* Revolutionary Auto Theme Detection */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --yapmate-bg: #0a0e1a;
+    --yapmate-surface: rgba(15, 23, 42, 0.95);
+    --yapmate-surface-elevated: rgba(30, 41, 59, 0.98);
+    --yapmate-surface-hover: rgba(103, 126, 234, 0.12);
+    --yapmate-surface-active: rgba(103, 126, 234, 0.16);
+    --yapmate-surface-glass: rgba(15, 23, 42, 0.85);
+    --yapmate-surface-frosted: rgba(15, 23, 42, 0.75);
+    --yapmate-text: #f1f5f9;
+    --yapmate-text-secondary: #cbd5e1;
+    --yapmate-text-muted: #94a3b8;
+    --yapmate-text-inverse: #0a0e1a;
+    --yapmate-text-accent: #a78bfa;
+    --yapmate-border: rgba(71, 85, 105, 0.6);
+    --yapmate-border-strong: rgba(100, 116, 139, 0.8);
+    --yapmate-border-glass: rgba(255, 255, 255, 0.1);
+    --yapmate-shadow-glow: 0 0 20px rgba(167, 139, 250, 0.3);
+    --yapmate-shadow-colored: 0 8px 32px rgba(167, 139, 250, 0.15);
+  }
 }
 
 @layer base {
@@ -71,14 +126,15 @@
   html {
     scroll-behavior: smooth;
     height: 100%;
+    font-size: 16px;
   }
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "cv02" 1, "cv03" 1, "cv04" 1;
     background: var(--yapmate-bg);
     color: var(--yapmate-text);
-    line-height: 1.5;
+    line-height: 1.6;
     font-size: 14px;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -86,111 +142,222 @@
     text-rendering: optimizeLegibility;
     height: 100%;
     overflow-x: hidden;
+    letter-spacing: -0.01em;
   }
 
-  /* Scrollbar Styling */
+  /* Revolutionary Scrollbar Design */
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: var(--yapmate-radius-full);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--yapmate-border-strong);
-    border-radius: 3px;
+    background: linear-gradient(135deg, var(--yapmate-primary-solid), var(--yapmate-secondary-solid));
+    border-radius: var(--yapmate-radius-full);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: var(--yapmate-transition-fast);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--yapmate-text-muted);
+    background: linear-gradient(135deg, var(--yapmate-secondary-solid), var(--yapmate-accent-solid));
+    transform: scale(1.1);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Revolutionary Selection Styling */
+  ::selection {
+    background: linear-gradient(135deg, var(--yapmate-primary-solid), var(--yapmate-secondary-solid));
+    color: var(--yapmate-text-inverse);
+    text-shadow: none;
+  }
+
+  ::-moz-selection {
+    background: linear-gradient(135deg, var(--yapmate-primary-solid), var(--yapmate-secondary-solid));
+    color: var(--yapmate-text-inverse);
+    text-shadow: none;
+  }
+
+  /* Focus Ring System */
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--yapmate-primary-solid);
+    outline-offset: 2px;
+    border-radius: var(--yapmate-radius-sm);
   }
 }
 
 @layer components {
-  /* Modern Card System */
+  /* Revolutionary Card System */
   .card {
     background: var(--yapmate-surface);
     border: 1px solid var(--yapmate-border);
     border-radius: var(--yapmate-radius);
     box-shadow: var(--yapmate-shadow-sm);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--yapmate-transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--yapmate-border-glass), transparent);
+    opacity: 0;
+    transition: var(--yapmate-transition);
   }
 
   .card:hover {
-    box-shadow: var(--yapmate-shadow);
+    box-shadow: var(--yapmate-shadow-colored);
     border-color: var(--yapmate-border-strong);
+    transform: translateY(-2px);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .card-glass {
+    background: var(--yapmate-surface-glass);
+    backdrop-filter: var(--yapmate-blur);
+    border: 1px solid var(--yapmate-border-glass);
+    box-shadow: var(--yapmate-shadow-lg);
   }
 
   .card-elevated {
     background: var(--yapmate-surface-elevated);
     box-shadow: var(--yapmate-shadow-lg);
+    transform: translateY(-1px);
   }
 
   .card-interactive {
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--yapmate-transition);
+    user-select: none;
   }
 
   .card-interactive:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--yapmate-shadow-lg);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--yapmate-shadow-2xl);
     background: var(--yapmate-surface-hover);
   }
 
   .card-interactive:active {
-    transform: translateY(0);
-    box-shadow: var(--yapmate-shadow);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: var(--yapmate-shadow-lg);
+    background: var(--yapmate-surface-active);
   }
 
-  /* Tweet Card Specific */
+  /* Revolutionary Tweet Card */
   .tweet-card {
     @apply card card-interactive;
-    padding: 16px;
+    padding: 20px;
     position: relative;
     overflow: hidden;
+    background: var(--yapmate-surface-glass);
+    backdrop-filter: var(--yapmate-blur);
+    border: 1px solid var(--yapmate-border-glass);
   }
 
-  .tweet-card.selected {
-    border-color: var(--yapmate-primary);
-    background: var(--yapmate-surface-hover);
-  }
-
-  .tweet-card::before {
+  .tweet-card::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    width: 3px;
+    width: 4px;
     height: 100%;
     background: var(--yapmate-primary);
     transform: scaleY(0);
-    transition: transform 0.2s ease;
+    transform-origin: bottom;
+    transition: var(--yapmate-transition);
   }
 
-  .tweet-card.selected::before,
-  .tweet-card:hover::before {
+  .tweet-card:hover::after {
     transform: scaleY(1);
+    background: var(--yapmate-secondary);
   }
 
-  /* Modern Button System */
+  .tweet-card.selected {
+    border: 2px solid var(--yapmate-primary-solid);
+    background: var(--yapmate-surface-hover);
+    box-shadow: var(--yapmate-shadow-glow);
+  }
+
+  .tweet-card.selected::after {
+    transform: scaleY(1);
+    background: var(--yapmate-accent);
+  }
+
+  /* Floating Action Cards */
+  .floating-card {
+    @apply card-glass;
+    position: fixed;
+    z-index: 1000;
+    animation: float-in 0.3s var(--yapmate-bounce);
+  }
+
+  @keyframes float-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Revolutionary Button System */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: inherit;
-    font-weight: 500;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-weight: 600;
     font-size: 14px;
     line-height: 1;
-    padding: 10px 16px;
+    padding: 12px 20px;
     border-radius: var(--yapmate-radius);
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--yapmate-transition);
     text-decoration: none;
     white-space: nowrap;
     user-select: none;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: -0.01em;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn:hover::before {
+    left: 100%;
   }
 
   .btn:disabled {
@@ -199,69 +366,139 @@
     pointer-events: none;
   }
 
+  .btn:disabled::before {
+    display: none;
+  }
+
+  /* Primary Button - Revolutionary Gradient */
   .btn-primary {
     @apply btn;
     background: var(--yapmate-primary);
     color: var(--yapmate-text-inverse);
-    box-shadow: var(--yapmate-shadow-sm);
+    box-shadow: var(--yapmate-shadow-colored);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .btn-primary:hover {
-    background: var(--yapmate-primary-dark);
-    box-shadow: var(--yapmate-shadow);
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--yapmate-shadow-glow);
+    background: var(--yapmate-secondary);
   }
 
   .btn-primary:active {
-    transform: translateY(0);
-    box-shadow: var(--yapmate-shadow-sm);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: var(--yapmate-shadow-colored);
   }
 
+  /* Secondary Button - Glass Morphism */
   .btn-secondary {
     @apply btn;
-    background: var(--yapmate-surface);
+    background: var(--yapmate-surface-glass);
+    backdrop-filter: var(--yapmate-blur-sm);
     color: var(--yapmate-text);
-    border-color: var(--yapmate-border);
+    border: 1px solid var(--yapmate-border-glass);
+    box-shadow: var(--yapmate-shadow-sm);
   }
 
   .btn-secondary:hover {
     background: var(--yapmate-surface-hover);
-    border-color: var(--yapmate-border-strong);
+    border-color: var(--yapmate-primary-solid);
+    transform: translateY(-1px);
+    box-shadow: var(--yapmate-shadow);
   }
 
+  /* Ghost Button - Minimal Elegance */
   .btn-ghost {
     @apply btn;
     background: transparent;
     color: var(--yapmate-text-secondary);
+    border: 1px solid transparent;
   }
 
   .btn-ghost:hover {
     background: var(--yapmate-surface-hover);
     color: var(--yapmate-text);
+    border-color: var(--yapmate-border);
   }
 
+  /* Icon Button - Perfect Circle */
   .btn-icon {
     @apply btn;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 0;
-    background: transparent;
+    border-radius: var(--yapmate-radius-full);
+    background: var(--yapmate-surface-glass);
+    backdrop-filter: var(--yapmate-blur-sm);
     color: var(--yapmate-text-secondary);
+    border: 1px solid var(--yapmate-border-glass);
   }
 
   .btn-icon:hover {
     background: var(--yapmate-surface-hover);
-    color: var(--yapmate-text);
+    color: var(--yapmate-primary-solid);
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: var(--yapmate-shadow);
+  }
+
+  /* Size Variants */
+  .btn-xs {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: var(--yapmate-radius-sm);
   }
 
   .btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 8px 16px;
+    font-size: 13px;
   }
 
   .btn-lg {
-    padding: 14px 20px;
+    padding: 16px 24px;
     font-size: 16px;
+    border-radius: var(--yapmate-radius-lg);
+  }
+
+  .btn-xl {
+    padding: 20px 32px;
+    font-size: 18px;
+    border-radius: var(--yapmate-radius-lg);
+  }
+
+  /* Special Effect Buttons */
+  .btn-glow {
+    box-shadow: var(--yapmate-shadow-glow);
+    animation: pulse-glow 2s infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: var(--yapmate-shadow-glow);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(103, 126, 234, 0.5);
+    }
+  }
+
+  .btn-success {
+    @apply btn;
+    background: var(--yapmate-success);
+    color: var(--yapmate-text-inverse);
+    box-shadow: 0 8px 32px rgba(67, 233, 123, 0.15);
+  }
+
+  .btn-warning {
+    @apply btn;
+    background: var(--yapmate-warning);
+    color: var(--yapmate-text-inverse);
+    box-shadow: 0 8px 32px rgba(250, 112, 154, 0.15);
+  }
+
+  .btn-error {
+    @apply btn;
+    background: var(--yapmate-error);
+    color: var(--yapmate-text-inverse);
+    box-shadow: 0 8px 32px rgba(255, 107, 107, 0.15);
   }
 
   /* Input System */
