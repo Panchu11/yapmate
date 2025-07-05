@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 interface Tweet {
   id: string
@@ -9,53 +9,101 @@ interface Tweet {
   replyCount: number
   retweetCount: number
   likeCount: number
+  viewCount?: number
   hasReplyBox: boolean
   url?: string
+  platform?: string
+  isThread?: boolean
+  isRetweet?: boolean
+  media?: any[]
+  mentions?: string[]
+  hashtags?: string[]
+  links?: string[]
+  sentiment?: 'positive' | 'negative' | 'neutral'
+  language?: string
+  quality?: number
 }
 
 export const useTweets = () => {
   const [tweets, setTweets] = useState<Tweet[]>([])
-  const [isLoadingTweets, setIsLoadingTweets] = useState(false)
+  const [isLoadingTweets, setIsLoadingTweets] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Listen for real-time tweet updates from content script
+  useEffect(() => {
+    console.log('🎧 Setting up tweet update listener...')
+
+    const handleMessage = (message: any) => {
+      console.log('📨 Received message:', message)
+
+      if (message.type === 'TWEETS_UPDATED') {
+        const receivedTweets = message.payload?.tweets || []
+        console.log(`📊 Received ${receivedTweets.length} tweets from content script`)
+
+        if (receivedTweets.length > 0) {
+          setTweets(receivedTweets)
+          setError(null)
+        }
+        setIsLoadingTweets(false)
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handleMessage)
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage)
+    }
+  }, [])
+
   const refreshTweets = useCallback(async () => {
+    console.log('🔄 Refreshing tweets...')
     setIsLoadingTweets(true)
     setError(null)
 
     try {
       // Get current tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-      
+
       if (!tab.id) {
         throw new Error('No active tab found')
       }
 
+      console.log('📍 Current tab URL:', tab.url)
+
       // Check if we're on Twitter/X
       const isTwitter = tab.url?.includes('x.com') || tab.url?.includes('twitter.com')
-      
+
       if (!isTwitter) {
-        // Return mock data for demo purposes
+        console.log('❌ Not on Twitter/X, using mock data')
         setTweets(generateMockTweets())
+        setIsLoadingTweets(false)
         return
       }
+
+      console.log('✅ On Twitter/X, requesting tweets from content script...')
 
       // Send message to content script to get tweets
       const response = await chrome.tabs.sendMessage(tab.id, {
         type: 'GET_TWEETS'
       })
 
-      if (response?.success) {
-        setTweets(response.data || [])
+      console.log('📨 Content script response:', response)
+
+      if (response?.success && response.data?.length > 0) {
+        console.log(`✅ Got ${response.data.length} tweets from content script`)
+        setTweets(response.data)
+        setError(null)
       } else {
-        // Fallback to mock data if content script fails
+        console.log('⚠️ No tweets from content script, using mock data')
         setTweets(generateMockTweets())
       }
 
     } catch (err) {
-      console.error('Error refreshing tweets:', err)
+      console.error('❌ Error refreshing tweets:', err)
       setError(err instanceof Error ? err.message : 'Failed to load tweets')
-      
+
       // Fallback to mock data
+      console.log('🔄 Falling back to mock data')
       setTweets(generateMockTweets())
     } finally {
       setIsLoadingTweets(false)

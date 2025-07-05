@@ -54,14 +54,13 @@ class YapMateContentScript {
 
   private async setup() {
     try {
-      // Verify we're on a supported platform
-      if (!platformManager.isSupported()) {
-        logger.warn('Not on supported platform, content script will not activate')
+      // Verify we're on Twitter/X specifically
+      if (!this.isTwitterPage()) {
+        logger.warn('❌ Not on Twitter/X, content script will not activate')
         return
       }
 
-      const platform = platformManager.getCurrentPlatform()
-      logger.info(`Setting up YapMate on ${platform?.name}`)
+      logger.info('🚀 Setting up YapMate on Twitter/X')
 
       // Initialize components
       await this.tweetExtractor.init()
@@ -73,11 +72,14 @@ class YapMateContentScript {
       // Set up DOM observers
       this.setupDOMObserver()
 
-      // Initial tweet extraction
-      this.extractTweets()
+      // Wait for page to load then extract tweets
+      setTimeout(async () => {
+        logger.info('🔍 Starting initial tweet extraction...')
+        await this.extractTweets()
+      }, 3000)
 
       this.isInitialized = true
-      logger.info('YapMate content script initialized successfully')
+      logger.info('✅ YapMate content script initialized successfully')
 
       // Notify background script
       chrome.runtime.sendMessage({
@@ -86,46 +88,59 @@ class YapMateContentScript {
       })
 
     } catch (error) {
-      logger.error('Error setting up content script:', error)
+      logger.error('❌ Error setting up content script:', error)
     }
+  }
+
+  private isTwitterPage(): boolean {
+    const hostname = window.location.hostname
+    return hostname === 'x.com' || hostname === 'twitter.com'
   }
 
   private async extractTweets() {
     try {
       // Check if we're on Twitter/X
       if (!this.isTwitterPage()) {
-        logger.warn('Not on Twitter/X, skipping tweet extraction')
+        logger.warn('❌ Not on Twitter/X, skipping tweet extraction')
         return
       }
+
+      logger.info('🔍 Extracting tweets from page...')
 
       // Extract tweets using the dedicated tweet extractor
       const tweets = await this.tweetExtractor.extractTweets()
 
+      logger.info(`📊 Found ${tweets.length} tweets on page`)
+
       if (tweets.length > 0) {
         this.sendTweetsToSidebar(tweets)
-        logger.debug(`Extracted ${tweets.length} tweets`)
+        logger.info(`✅ Sent ${tweets.length} tweets to sidebar`)
+      } else {
+        logger.warn('⚠️ No tweets found on page')
       }
     } catch (error) {
-      logger.error('Error extracting tweets:', error)
+      logger.error('❌ Error extracting tweets:', error)
     }
   }
 
   private sendTweetsToSidebar(tweets: any[]) {
+    logger.info(`📤 Sending ${tweets.length} tweets to sidebar`)
+
     // Notify sidebar about new tweets
     chrome.runtime.sendMessage({
       type: 'TWEETS_UPDATED',
       payload: {
         tweets,
         url: window.location.href,
-        platform: 'twitter'
+        platform: 'twitter',
+        timestamp: Date.now()
       }
+    }).catch(error => {
+      logger.error('❌ Failed to send tweets to sidebar:', error)
     })
   }
 
-  private isTwitterPage(): boolean {
-    return window.location.hostname === 'x.com' ||
-           window.location.hostname === 'twitter.com'
-  }
+
 
   private setupMessageListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
