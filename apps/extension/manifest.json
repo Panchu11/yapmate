@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "YapMate 2.0",
+  "version": "2.0.0",
+  "description": "Revolutionary AI-powered social media engagement platform for crypto Twitter",
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://api.fireworks.ai/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["src/content/content.ts"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/background.ts"
+  },
+  "action": {
+    "default_title": "YapMate 2.0 - Open Sidebar",
+    "default_popup": "popup.html"
+  },
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content/*", "assets/*"],
+      "matches": ["https://x.com/*", "https://twitter.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

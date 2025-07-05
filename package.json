@@ -1,0 +1,36 @@
+{
+  "name": "yapmate-2.0",
+  "version": "2.0.0",
+  "description": "Revolutionary AI-powered social media engagement platform for crypto Twitter",
+  "private": true,
+  "scripts": {
+    "dev": "cd apps/extension && npm run dev",
+    "build": "cd apps/extension && npm run build",
+    "build:extension": "cd apps/extension && npm run build",
+    "install:all": "npm install && cd apps/extension && npm install && cd ../../packages/shared && npm install && cd ../ai && npm install",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/dist packages/*/dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Panchu11/yapmate.git"
+  },
+  "author": "YapMate Team",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "social-media",
+    "crypto",
+    "twitter",
+    "chrome-extension",
+    "engagement",
+    "automation"
+  ]
+}
