@@ -1,231 +1,345 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Import Modern Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for Dynamic Theming */
+/* Modern Design System Variables */
 :root {
-  --yapmate-primary: #6366f1;
-  --yapmate-primary-dark: #4f46e5;
-  --yapmate-primary-light: #818cf8;
+  /* Brand Colors */
+  --yapmate-primary: #3b82f6;
+  --yapmate-primary-dark: #2563eb;
+  --yapmate-primary-light: #60a5fa;
   --yapmate-secondary: #8b5cf6;
   --yapmate-accent: #06b6d4;
   --yapmate-success: #10b981;
   --yapmate-warning: #f59e0b;
   --yapmate-error: #ef4444;
-  --yapmate-surface: rgba(255, 255, 255, 0.85);
-  --yapmate-surface-elevated: rgba(255, 255, 255, 0.95);
+
+  /* Surface Colors */
+  --yapmate-bg: #ffffff;
+  --yapmate-surface: rgba(255, 255, 255, 0.95);
+  --yapmate-surface-elevated: rgba(255, 255, 255, 0.98);
+  --yapmate-surface-hover: rgba(59, 130, 246, 0.05);
+
+  /* Text Colors */
   --yapmate-text: #0f172a;
   --yapmate-text-secondary: #475569;
   --yapmate-text-muted: #64748b;
-  --yapmate-border: rgba(255, 255, 255, 0.2);
-  --yapmate-border-strong: rgba(255, 255, 255, 0.3);
+  --yapmate-text-inverse: #ffffff;
+
+  /* Border Colors */
+  --yapmate-border: rgba(226, 232, 240, 0.8);
+  --yapmate-border-strong: rgba(203, 213, 225, 0.9);
+  --yapmate-border-focus: var(--yapmate-primary);
+
+  /* Shadows */
+  --yapmate-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --yapmate-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --yapmate-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --yapmate-shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --yapmate-blur: blur(20px);
+  --yapmate-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --yapmate-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Effects */
+  --yapmate-blur: blur(16px);
   --yapmate-blur-sm: blur(8px);
+  --yapmate-radius: 12px;
+  --yapmate-radius-lg: 16px;
 }
 
 /* Dark Theme Variables */
 .dark {
-  --yapmate-surface: rgba(15, 23, 42, 0.85);
-  --yapmate-surface-elevated: rgba(30, 41, 59, 0.9);
+  --yapmate-bg: #0f172a;
+  --yapmate-surface: rgba(30, 41, 59, 0.95);
+  --yapmate-surface-elevated: rgba(51, 65, 85, 0.98);
+  --yapmate-surface-hover: rgba(59, 130, 246, 0.1);
   --yapmate-text: #f8fafc;
   --yapmate-text-secondary: #cbd5e1;
   --yapmate-text-muted: #94a3b8;
-  --yapmate-border: rgba(255, 255, 255, 0.1);
-  --yapmate-border-strong: rgba(255, 255, 255, 0.2);
+  --yapmate-text-inverse: #0f172a;
+  --yapmate-border: rgba(71, 85, 105, 0.8);
+  --yapmate-border-strong: rgba(100, 116, 139, 0.9);
 }
 
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   html {
     scroll-behavior: smooth;
+    height: 100%;
   }
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    background: var(--yapmate-bg);
     color: var(--yapmate-text);
-    line-height: 1.6;
+    line-height: 1.5;
+    font-size: 14px;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    height: 100%;
+    overflow-x: hidden;
   }
 
-  .dark body {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--yapmate-border-strong);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--yapmate-text-muted);
   }
 }
 
 @layer components {
-  /* Enhanced Glass Morphism System */
-  .glass {
+  /* Modern Card System */
+  .card {
     background: var(--yapmate-surface);
-    backdrop-filter: var(--yapmate-blur);
     border: 1px solid var(--yapmate-border);
+    border-radius: var(--yapmate-radius);
+    box-shadow: var(--yapmate-shadow-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card:hover {
+    box-shadow: var(--yapmate-shadow);
+    border-color: var(--yapmate-border-strong);
+  }
+
+  .card-elevated {
+    background: var(--yapmate-surface-elevated);
+    box-shadow: var(--yapmate-shadow-lg);
+  }
+
+  .card-interactive {
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--yapmate-shadow-lg);
+    background: var(--yapmate-surface-hover);
+  }
+
+  .card-interactive:active {
+    transform: translateY(0);
     box-shadow: var(--yapmate-shadow);
   }
 
-  .glass-card {
-    background: var(--yapmate-surface);
-    backdrop-filter: var(--yapmate-blur);
-    border: 1px solid var(--yapmate-border);
-    border-radius: 16px;
-    box-shadow: var(--yapmate-shadow-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Tweet Card Specific */
+  .tweet-card {
+    @apply card card-interactive;
+    padding: 16px;
     position: relative;
     overflow: hidden;
   }
 
-  .glass-card::before {
+  .tweet-card.selected {
+    border-color: var(--yapmate-primary);
+    background: var(--yapmate-surface-hover);
+  }
+
+  .tweet-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    width: 3px;
+    height: 100%;
+    background: var(--yapmate-primary);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
   }
 
-  .glass-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--yapmate-shadow-xl);
-    border-color: rgba(99, 102, 241, 0.3);
-  }
-
-  .glass-card-elevated {
-    background: var(--yapmate-surface-elevated);
-    transform: translateY(-2px);
-    box-shadow: var(--yapmate-shadow-xl);
+  .tweet-card.selected::before,
+  .tweet-card:hover::before {
+    transform: scaleY(1);
   }
 
   /* Modern Button System */
-  .btn-primary {
-    position: relative;
-    background: linear-gradient(135deg, var(--yapmate-primary), var(--yapmate-secondary));
-    color: white;
-    font-weight: 600;
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-weight: 500;
     font-size: 14px;
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: none;
+    line-height: 1;
+    padding: 10px 16px;
+    border-radius: var(--yapmate-radius);
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    white-space: nowrap;
+    user-select: none;
   }
 
-  .btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn-primary {
+    @apply btn;
+    background: var(--yapmate-primary);
+    color: var(--yapmate-text-inverse);
+    box-shadow: var(--yapmate-shadow-sm);
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-  }
-
-  .btn-primary:hover::before {
-    left: 100%;
+    background: var(--yapmate-primary-dark);
+    box-shadow: var(--yapmate-shadow);
+    transform: translateY(-1px);
   }
 
   .btn-primary:active {
     transform: translateY(0);
+    box-shadow: var(--yapmate-shadow-sm);
   }
 
   .btn-secondary {
+    @apply btn;
     background: var(--yapmate-surface);
     color: var(--yapmate-text);
-    font-weight: 500;
-    font-size: 14px;
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: 1px solid var(--yapmate-border);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: var(--yapmate-blur-sm);
+    border-color: var(--yapmate-border);
   }
 
   .btn-secondary:hover {
-    background: rgba(99, 102, 241, 0.1);
-    border-color: var(--yapmate-primary);
-    transform: translateY(-1px);
-    box-shadow: var(--yapmate-shadow);
+    background: var(--yapmate-surface-hover);
+    border-color: var(--yapmate-border-strong);
   }
 
   .btn-ghost {
+    @apply btn;
     background: transparent;
     color: var(--yapmate-text-secondary);
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
   }
 
   .btn-ghost:hover {
-    background: rgba(99, 102, 241, 0.1);
+    background: var(--yapmate-surface-hover);
     color: var(--yapmate-text);
   }
 
   .btn-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @apply btn;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
     color: var(--yapmate-text-secondary);
   }
 
   .btn-icon:hover {
-    background: rgba(99, 102, 241, 0.1);
-    color: var(--yapmate-primary);
-    transform: scale(1.05);
+    background: var(--yapmate-surface-hover);
+    color: var(--yapmate-text);
   }
 
-  /* Enhanced Input System */
-  .input-field {
-    background: var(--yapmate-surface);
-    border: 1px solid var(--yapmate-border);
-    border-radius: 12px;
-    padding: 12px 16px;
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .btn-lg {
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+
+  /* Input System */
+  .input {
+    font-family: inherit;
     font-size: 14px;
     font-weight: 400;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: var(--yapmate-radius);
+    border: 1px solid var(--yapmate-border);
+    background: var(--yapmate-surface);
     color: var(--yapmate-text);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: var(--yapmate-blur-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
   }
 
-  .input-field:focus {
+  .input:focus {
     outline: none;
-    border-color: var(--yapmate-primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    background: var(--yapmate-surface-elevated);
+    border-color: var(--yapmate-border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
-  .input-field::placeholder {
+  .input::placeholder {
     color: var(--yapmate-text-muted);
-    font-weight: 400;
+  }
+
+  .input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Legacy class for compatibility */
+  .input-field {
+    @apply input;
+  }
+
+  /* Badge System */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .badge-primary {
+    @apply badge;
+    background: var(--yapmate-primary);
+    color: var(--yapmate-text-inverse);
+  }
+
+  .badge-secondary {
+    @apply badge;
+    background: var(--yapmate-surface-elevated);
+    color: var(--yapmate-text-secondary);
+    border: 1px solid var(--yapmate-border);
+  }
+
+  .badge-success {
+    @apply badge;
+    background: var(--yapmate-success);
+    color: var(--yapmate-text-inverse);
+  }
+
+  .badge-warning {
+    @apply badge;
+    background: var(--yapmate-warning);
+    color: var(--yapmate-text-inverse);
+  }
+
+  .badge-error {
+    @apply badge;
+    background: var(--yapmate-error);
+    color: var(--yapmate-text-inverse);
   }
 
   /* Enhanced Tweet Card */

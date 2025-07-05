@@ -92,38 +92,39 @@ class YapMateContentScript {
 
   private async extractTweets() {
     try {
-      // Use platform manager for multi-platform support
-      const posts = await platformManager.extractPosts()
+      // Check if we're on Twitter/X
+      if (!this.isTwitterPage()) {
+        logger.warn('Not on Twitter/X, skipping tweet extraction')
+        return
+      }
 
-      // Convert posts to tweet format for compatibility
-      const tweets = posts.map(post => ({
-        id: post.id,
-        text: post.text,
-        author: post.author,
-        username: post.username,
-        timestamp: post.timestamp,
-        replyCount: post.engagement.comments,
-        retweetCount: post.engagement.shares,
-        likeCount: post.engagement.likes,
-        hasReplyBox: post.hasReplyBox,
-        url: post.url,
-        platform: post.platform
-      }))
+      // Extract tweets using the dedicated tweet extractor
+      const tweets = await this.tweetExtractor.extractTweets()
 
-      // Notify sidebar about new posts
-      chrome.runtime.sendMessage({
-        type: 'TWEETS_UPDATED',
-        payload: {
-          tweets,
-          url: window.location.href,
-          platform: platformManager.getCurrentPlatformId()
-        }
-      })
-
-      logger.debug(`Extracted ${tweets.length} posts from ${platformManager.getCurrentPlatform()?.name}`)
+      if (tweets.length > 0) {
+        this.sendTweetsToSidebar(tweets)
+        logger.debug(`Extracted ${tweets.length} tweets`)
+      }
     } catch (error) {
-      logger.error('Error extracting posts:', error)
+      logger.error('Error extracting tweets:', error)
     }
+  }
+
+  private sendTweetsToSidebar(tweets: any[]) {
+    // Notify sidebar about new tweets
+    chrome.runtime.sendMessage({
+      type: 'TWEETS_UPDATED',
+      payload: {
+        tweets,
+        url: window.location.href,
+        platform: 'twitter'
+      }
+    })
+  }
+
+  private isTwitterPage(): boolean {
+    return window.location.hostname === 'x.com' ||
+           window.location.hostname === 'twitter.com'
   }
 
   private setupMessageListeners() {
@@ -161,20 +162,25 @@ class YapMateContentScript {
   }
 
   private setupDOMObserver() {
-    // Debounced function to handle DOM changes
+    // Set up real-time tweet updates from the tweet extractor
+    this.tweetExtractor.setOnTweetsUpdate((tweets) => {
+      this.sendTweetsToSidebar(tweets)
+    })
+
+    // Debounced function to handle URL changes and major DOM updates
     const handleDOMChanges = debounce(() => {
-      if (this.isInitialized) {
+      if (this.isInitialized && this.isTwitterPage()) {
         this.extractTweets()
       }
-    }, 500)
+    }, 1000)
 
-    // Create observer to watch for new tweets
+    // Create observer to watch for navigation changes (Twitter is SPA)
     this.observer = new MutationObserver((mutations) => {
       let shouldUpdate = false
 
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          // Check if new tweets were added
+          // Check if this is a major page change
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element

@@ -1,9 +1,70 @@
-// Tweet extraction utility for Twitter/X
+// Real-time Tweet extraction utility for Twitter/X
 export class TweetExtractor {
   private isInitialized = false
+  private observer: MutationObserver | null = null
+  private extractedTweets = new Map<string, any>()
+  private onTweetsUpdate: ((tweets: any[]) => void) | null = null
 
   async init(): Promise<void> {
     this.isInitialized = true
+    this.setupRealTimeObserver()
+  }
+
+  private setupRealTimeObserver(): void {
+    // Observe DOM changes for real-time tweet detection
+    this.observer = new MutationObserver((mutations) => {
+      let hasNewTweets = false
+
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element
+
+              // Check if this is a tweet or contains tweets
+              if (this.isTweetElement(element)) {
+                this.processTweetElement(element)
+                hasNewTweets = true
+              } else {
+                // Check for tweets within the added element
+                const tweets = element.querySelectorAll('article[data-testid="tweet"]')
+                tweets.forEach(tweet => {
+                  this.processTweetElement(tweet)
+                  hasNewTweets = true
+                })
+              }
+            }
+          })
+        }
+      })
+
+      if (hasNewTweets && this.onTweetsUpdate) {
+        this.onTweetsUpdate(Array.from(this.extractedTweets.values()))
+      }
+    })
+
+    // Start observing
+    this.observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    })
+  }
+
+  private isTweetElement(element: Element): boolean {
+    return element.matches('article[data-testid="tweet"]') ||
+           element.matches('[data-testid="tweet"]') ||
+           element.matches('article[role="article"]')
+  }
+
+  private processTweetElement(element: Element): void {
+    try {
+      const tweet = this.extractTweetFromElement(element as HTMLElement)
+      if (tweet && tweet.id) {
+        this.extractedTweets.set(tweet.id, tweet)
+      }
+    } catch (error) {
+      console.warn('Error processing tweet element:', error)
+    }
   }
 
   async extractTweets(): Promise<any[]> {
@@ -12,44 +73,24 @@ export class TweetExtractor {
     }
 
     try {
-      // Twitter/X selectors (these may change over time)
-      const tweetSelectors = [
-        'article[data-testid="tweet"]',
-        '[data-testid="tweet"]',
-        'article[role="article"]'
-      ]
+      // Get all current tweets on the page
+      const tweetElements = document.querySelectorAll('article[data-testid="tweet"]')
 
-      let tweetElements: NodeListOf<Element> | null = null
-
-      // Try different selectors
-      for (const selector of tweetSelectors) {
-        tweetElements = document.querySelectorAll(selector)
-        if (tweetElements.length > 0) break
-      }
-
-      if (!tweetElements || tweetElements.length === 0) {
+      if (tweetElements.length === 0) {
         console.log('No tweets found on page')
         return []
       }
 
-      const tweets = []
-      const processedIds = new Set<string>()
+      this.extractedTweets.clear()
 
       for (const element of Array.from(tweetElements)) {
-        try {
-          const tweet = this.extractTweetFromElement(element as HTMLElement)
-          
-          if (tweet && !processedIds.has(tweet.id)) {
-            tweets.push(tweet)
-            processedIds.add(tweet.id)
-          }
-        } catch (error) {
-          console.warn('Error extracting tweet:', error)
-        }
+        this.processTweetElement(element)
       }
 
+      const tweets = Array.from(this.extractedTweets.values())
       console.log(`Extracted ${tweets.length} tweets`)
-      return tweets.slice(0, 10) // Limit to 10 tweets for performance
+
+      return tweets
 
     } catch (error) {
       console.error('Error in extractTweets:', error)
@@ -57,92 +98,32 @@ export class TweetExtractor {
     }
   }
 
+  setOnTweetsUpdate(callback: (tweets: any[]) => void): void {
+    this.onTweetsUpdate = callback
+  }
+
   private extractTweetFromElement(element: HTMLElement): any | null {
     try {
-      // Extract tweet text
-      const textSelectors = [
-        '[data-testid="tweetText"]',
-        '[lang]',
-        '.tweet-text',
-        '.css-901oao'
-      ]
-
-      let tweetText = ''
-      for (const selector of textSelectors) {
-        const textElement = element.querySelector(selector)
-        if (textElement) {
-          tweetText = textElement.textContent?.trim() || ''
-          if (tweetText) break
-        }
-      }
-
+      // Extract tweet text with full content
+      const tweetText = this.extractFullTweetText(element)
       if (!tweetText) {
         return null
       }
 
       // Extract author information
-      const authorSelectors = [
-        '[data-testid="User-Name"]',
-        '.css-1dbjc4n .css-901oao .css-16my406',
-        '.tweet-author'
-      ]
-
-      let author = 'Unknown'
-      let username = 'unknown'
-
-      for (const selector of authorSelectors) {
-        const authorElement = element.querySelector(selector)
-        if (authorElement) {
-          const authorText = authorElement.textContent?.trim()
-          if (authorText) {
-            author = authorText
-            break
-          }
-        }
-      }
-
-      // Extract username (handle)
-      const usernameSelectors = [
-        '[data-testid="User-Name"] + div',
-        '.css-901oao .css-16my406 .css-901oao',
-        '.tweet-username'
-      ]
-
-      for (const selector of usernameSelectors) {
-        const usernameElement = element.querySelector(selector)
-        if (usernameElement) {
-          const usernameText = usernameElement.textContent?.trim()
-          if (usernameText && usernameText.startsWith('@')) {
-            username = usernameText.substring(1)
-            break
-          }
-        }
+      const authorInfo = this.extractAuthorInfo(element)
+      if (!authorInfo.author || !authorInfo.username) {
+        return null
       }
 
       // Extract timestamp
-      const timeSelectors = [
-        'time',
-        '[datetime]',
-        '.tweet-timestamp'
-      ]
-
-      let timestamp = new Date().toISOString()
-      for (const selector of timeSelectors) {
-        const timeElement = element.querySelector(selector)
-        if (timeElement) {
-          const datetime = timeElement.getAttribute('datetime') || timeElement.textContent
-          if (datetime) {
-            timestamp = new Date(datetime).toISOString()
-            break
-          }
-        }
-      }
+      const timestamp = this.extractTimestamp(element)
 
       // Extract engagement metrics
       const metrics = this.extractEngagementMetrics(element)
 
-      // Generate unique ID
-      const id = this.generateTweetId(tweetText, author, timestamp)
+      // Generate unique ID based on content and author
+      const id = this.generateTweetId(tweetText, authorInfo.username, timestamp)
 
       // Check for reply box
       const hasReplyBox = this.hasReplyBox(element)
@@ -150,23 +131,216 @@ export class TweetExtractor {
       // Extract URL if available
       const url = this.extractTweetUrl(element)
 
+      // Check if this is a thread
+      const isThread = this.isPartOfThread(element)
+
+      // Extract media information
+      const media = this.extractMediaInfo(element)
+
       return {
         id,
         text: tweetText,
-        author,
-        username,
+        author: authorInfo.author,
+        username: authorInfo.username,
         timestamp,
         replyCount: metrics.replies,
         retweetCount: metrics.retweets,
         likeCount: metrics.likes,
         hasReplyBox,
-        url
+        url,
+        isThread,
+        media,
+        platform: 'twitter'
       }
 
     } catch (error) {
       console.error('Error extracting tweet from element:', error)
       return null
     }
+  }
+
+  private extractFullTweetText(element: HTMLElement): string {
+    // Multiple strategies to get full tweet text
+    const strategies = [
+      // Strategy 1: Main tweet text container
+      () => {
+        const textElement = element.querySelector('[data-testid="tweetText"]')
+        return textElement?.textContent?.trim() || ''
+      },
+
+      // Strategy 2: Language-tagged elements (Twitter uses these)
+      () => {
+        const langElements = element.querySelectorAll('[lang]')
+        let fullText = ''
+        langElements.forEach(el => {
+          const text = el.textContent?.trim()
+          if (text && text.length > fullText.length) {
+            fullText = text
+          }
+        })
+        return fullText
+      },
+
+      // Strategy 3: CSS class-based extraction
+      () => {
+        const selectors = [
+          '.css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0',
+          '.css-901oao.r-18jsvk2.r-37j5jr.r-a023e6.r-16dba41.r-rjixqe.r-bcqeeo.r-bnwqim.r-qvutc0',
+          '.css-901oao'
+        ]
+
+        for (const selector of selectors) {
+          const elements = element.querySelectorAll(selector)
+          for (const el of elements) {
+            const text = el.textContent?.trim()
+            if (text && text.length > 10) { // Reasonable tweet length
+              return text
+            }
+          }
+        }
+        return ''
+      }
+    ]
+
+    // Try each strategy until we get good content
+    for (const strategy of strategies) {
+      const text = strategy()
+      if (text && text.length > 0) {
+        return text
+      }
+    }
+
+    return ''
+  }
+
+  private extractAuthorInfo(element: HTMLElement): { author: string; username: string } {
+    let author = ''
+    let username = ''
+
+    // Extract display name
+    const nameElement = element.querySelector('[data-testid="User-Name"] .css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0') ||
+                       element.querySelector('[data-testid="User-Name"] span') ||
+                       element.querySelector('.css-901oao.css-16my406.r-poiln3.r-bcqeeo.r-qvutc0')
+
+    if (nameElement) {
+      author = nameElement.textContent?.trim() || ''
+    }
+
+    // Extract username (handle)
+    const usernameElement = element.querySelector('[data-testid="User-Name"]')
+    if (usernameElement) {
+      const usernameText = usernameElement.textContent
+      const match = usernameText?.match(/@(\w+)/)
+      if (match) {
+        username = match[1]
+      }
+    }
+
+    // Fallback: try to find username in any text
+    if (!username) {
+      const allText = element.textContent || ''
+      const match = allText.match(/@(\w+)/)
+      if (match) {
+        username = match[1]
+      }
+    }
+
+    return { author: author || 'Unknown', username: username || 'unknown' }
+  }
+
+  private extractTimestamp(element: HTMLElement): string {
+    const timeElement = element.querySelector('time[datetime]')
+    if (timeElement) {
+      const datetime = timeElement.getAttribute('datetime')
+      if (datetime) {
+        return new Date(datetime).toISOString()
+      }
+    }
+
+    // Fallback: try to parse relative time
+    const timeText = element.querySelector('time')?.textContent?.trim()
+    if (timeText) {
+      return this.parseRelativeTime(timeText)
+    }
+
+    return new Date().toISOString()
+  }
+
+  private parseRelativeTime(timeText: string): string {
+    const now = new Date()
+    const lowerText = timeText.toLowerCase()
+
+    if (lowerText.includes('now') || lowerText.includes('just now')) {
+      return now.toISOString()
+    }
+
+    const minuteMatch = lowerText.match(/(\d+)m/)
+    if (minuteMatch) {
+      const minutes = parseInt(minuteMatch[1])
+      return new Date(now.getTime() - minutes * 60 * 1000).toISOString()
+    }
+
+    const hourMatch = lowerText.match(/(\d+)h/)
+    if (hourMatch) {
+      const hours = parseInt(hourMatch[1])
+      return new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString()
+    }
+
+    const dayMatch = lowerText.match(/(\d+)d/)
+    if (dayMatch) {
+      const days = parseInt(dayMatch[1])
+      return new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString()
+    }
+
+    return now.toISOString()
+  }
+
+  private isPartOfThread(element: HTMLElement): boolean {
+    // Check for thread indicators
+    const threadIndicators = [
+      '[data-testid="tweet"] + [data-testid="tweet"]', // Sequential tweets
+      '.css-1dbjc4n[data-testid="tweet"]', // Thread container
+      '[aria-label*="thread"]' // Thread labels
+    ]
+
+    return threadIndicators.some(selector => {
+      try {
+        return element.closest(selector) !== null || element.querySelector(selector) !== null
+      } catch {
+        return false
+      }
+    })
+  }
+
+  private extractMediaInfo(element: HTMLElement): Array<{type: string; url: string; alt?: string}> {
+    const media: Array<{type: string; url: string; alt?: string}> = []
+
+    // Extract images
+    const images = element.querySelectorAll('img[src*="pbs.twimg.com"]')
+    images.forEach(img => {
+      const src = img.getAttribute('src')
+      if (src) {
+        media.push({
+          type: 'image',
+          url: src,
+          alt: img.getAttribute('alt') || ''
+        })
+      }
+    })
+
+    // Extract videos
+    const videos = element.querySelectorAll('video')
+    videos.forEach(video => {
+      const src = video.getAttribute('src') || video.querySelector('source')?.getAttribute('src')
+      if (src) {
+        media.push({
+          type: 'video',
+          url: src
+        })
+      }
+    })
+
+    return media
   }
 
   private extractEngagementMetrics(element: HTMLElement): { replies: number; retweets: number; likes: number } {

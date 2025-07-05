@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cryptoIntelligence } from '../../utils/cryptoIntelligence'
 
 interface Tweet {
   id: string
@@ -30,35 +29,18 @@ const buildPrompt = (tweet: Tweet, tone: ToneType, cryptoMode: boolean): string 
   prompt += `Author: @${tweet.username} (${tweet.author})\n\n`
 
   if (cryptoMode) {
-    // Get enhanced crypto context
-    const context = cryptoIntelligence.getEnhancedContext(tweet.text)
+    // Simple crypto context detection
+    const cryptoMentions = detectCryptoMentions(tweet.text)
 
-    if (context.projects.length > 0) {
-      prompt += `Detected Crypto Projects:\n`
-      context.projects.forEach(project => {
-        prompt += `- ${project.name} (${project.symbol}): ${project.category}\n`
-      })
-      prompt += `\n`
+    if (cryptoMentions.length > 0) {
+      prompt += `Detected crypto mentions: ${cryptoMentions.join(', ')}\n\n`
     }
 
-    if (context.sentiment.confidence > 0.3) {
-      prompt += `Market Sentiment: ${context.sentiment.label} (${context.sentiment.score.toFixed(2)})\n`
-      prompt += `Key indicators: ${context.sentiment.keywords.join(', ')}\n\n`
+    // Detect sentiment keywords
+    const sentiment = detectSentiment(tweet.text)
+    if (sentiment !== 'neutral') {
+      prompt += `Market sentiment: ${sentiment}\n\n`
     }
-
-    if (context.suggestedTickers.length > 0) {
-      prompt += `Suggested tickers to include: ${context.suggestedTickers.join(', ')}\n`
-    }
-
-    if (context.suggestedMentions.length > 0) {
-      prompt += `Suggested mentions: ${context.suggestedMentions.join(', ')}\n`
-    }
-
-    if (context.suggestedHashtags.length > 0) {
-      prompt += `Suggested hashtags: ${context.suggestedHashtags.join(', ')}\n`
-    }
-
-    prompt += `\n`
   }
 
   prompt += `Instructions:\n`
@@ -68,10 +50,9 @@ const buildPrompt = (tweet: Tweet, tone: ToneType, cryptoMode: boolean): string 
   prompt += `- Be engaging and add value to the conversation\n`
 
   if (cryptoMode) {
-    prompt += `- CRITICAL: Use the detected crypto context above\n`
-    prompt += `- Include relevant tickers, mentions, and hashtags naturally\n`
-    prompt += `- Match the market sentiment appropriately\n`
-    prompt += `- Show deep crypto knowledge and community understanding\n`
+    prompt += `- If crypto-related, show knowledge but don't force crypto topics\n`
+    prompt += `- Use natural language, avoid excessive jargon\n`
+    prompt += `- Be authentic and helpful\n`
   }
 
   prompt += `- NO quotes around the reply, write it as a direct tweet\n`
@@ -79,6 +60,42 @@ const buildPrompt = (tweet: Tweet, tone: ToneType, cryptoMode: boolean): string 
   prompt += `Reply:`
 
   return prompt
+}
+
+// Simple crypto mention detection
+const detectCryptoMentions = (text: string): string[] => {
+  const mentions = []
+
+  // Detect tickers ($BTC, $ETH, etc.)
+  const tickers = text.match(/\$[A-Z]{1,10}/g) || []
+  mentions.push(...tickers)
+
+  // Detect common crypto terms
+  const cryptoTerms = ['bitcoin', 'ethereum', 'crypto', 'blockchain', 'defi', 'nft', 'web3']
+  const lowerText = text.toLowerCase()
+
+  cryptoTerms.forEach(term => {
+    if (lowerText.includes(term)) {
+      mentions.push(term)
+    }
+  })
+
+  return [...new Set(mentions)] // Remove duplicates
+}
+
+// Simple sentiment detection
+const detectSentiment = (text: string): 'bullish' | 'bearish' | 'neutral' => {
+  const lowerText = text.toLowerCase()
+
+  const bullishWords = ['moon', 'pump', 'bullish', 'up', 'gains', 'rocket', 'lfg']
+  const bearishWords = ['dump', 'crash', 'bearish', 'down', 'drop', 'rekt']
+
+  const bullishCount = bullishWords.filter(word => lowerText.includes(word)).length
+  const bearishCount = bearishWords.filter(word => lowerText.includes(word)).length
+
+  if (bullishCount > bearishCount) return 'bullish'
+  if (bearishCount > bullishCount) return 'bearish'
+  return 'neutral'
 }
 
 const getSystemPrompt = (tone: ToneType, cryptoMode: boolean): string => {
